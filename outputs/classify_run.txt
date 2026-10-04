@@ -1,0 +1,5 @@
+total: 152410
+labels: {'positive': 131878, 'negative': 13255, 'neutral': 7277}
+percent: {'positive': 86.53, 'negative': 8.7, 'neutral': 4.77}
+pre-check phrases fired: {'positive': 26058, 'negative': 8449} — 22.64% of all reviews
+output written to: /Users/preethiselvaganapathy/Downloads/AI & LLM/Gift_Cards_classified_with_neutral.jsonl.gz

@@ -1,0 +1,8 @@
+LLM sentiment vs 3-class key on balanced sample:
+  agreement: 111/150 = 74.0%
+  positive recall: 47/50 = 94%
+  neutral  recall: 15/50 = 30%
+  negative recall: 49/50 = 98%
+
+LLM on the 50 three-star rows: {'neutral': 15, 'negative': 32, 'positive': 3}
+lexicon on the same rows   : {'positive': 35, 'negative': 13, 'neutral': 2}

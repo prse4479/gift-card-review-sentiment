@@ -1,0 +1,5 @@
+EMOTION TAKE COMPARISON (LLM vs NRC) — sample: 200 rows
+  exact agreement : 34/200 = 17.0%
+  family agreement: 137/200 = 68.5%  (positive-leaning vs negative-leaning)
+  nrc anticipation -> LLM top picks: {'joy': 71, 'trust': 24, 'anger': 6}
+  nrc none (no lexicon words) rows: 42

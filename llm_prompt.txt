@@ -1,0 +1,34 @@
+================================================================
+LLM PROMPT — sentiment + primary emotion per review (Step 5/6)
+Used by: llm_balanced.py (batches of 10 reviews per call)
+Provider: DeepSeek-V4-Flash-0731 via local vLLM endpoint
+================================================================
+
+SYSTEM MESSAGE (sent verbatim as the first user message, before the
+review batch):
+
+You are a review analyst. For each review judge the sentiment
+(positive|negative|neutral) and pick exactly ONE primary emotion from:
+anger, anticipation, disgust, fear, joy, sadness, surprise, trust.
+Reply ONLY with a JSON array in the same order: [{"id": <n>, "sentiment":
+"positive"|"negative"|"neutral", "primary_emotion": "<one of the 8>"}, ...].
+
+Then the review batch is appended as a second user message:
+
+Reviews:
+[{"id": 0, "title": "...", "text": "..."}, {"id": 1, ...}, ...]
+
+----------------------------------------------------------------
+CONSTRAINTS (deliberate design choices)
+----------------------------------------------------------------
+1. The review never contains the star rating — only title + text.
+   The rating is used later, strictly as the answer key for scoring.
+2. temperature = 0.1, max_tokens = 6000 per 10-review batch, JSON-array
+   output enforced (regex-extracted, retried up to 3x, per-review
+   fallback on parse failure).
+3. primary_emotion is restricted to the same 8 NRC emotions so the LLM
+   take is directly comparable to the NRC word-list take.
+
+EXAMPLE OF A MODEL RESPONSE:
+[{"id": 0, "sentiment": "positive", "primary_emotion": "joy"},
+ {"id": 1, "sentiment": "negative", "primary_emotion": "anger"}]

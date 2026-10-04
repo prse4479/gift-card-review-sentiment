@@ -1,0 +1,34 @@
+balanced sample: 150 reviews (50 per class, seed 2026)
+AGREEMENT with 3-class key: 82/150 = 54.7%
+
+confusion (rows=predicted, cols=answer key):
+pred\key     positive   neutral  negative
+positive           49        35        11
+neutral             0         2         8
+negative            1        13        31
+
+precision (right when the model says X):
+  positive: 49/95 = 51.6%
+  neutral : 2/10 = 20.0%
+  negative: 31/45 = 68.9%
+recall (caught of true class X):
+  positive: 49/50 = 98.0%
+  neutral : 2/50 = 4.0%
+  negative: 31/50 = 62.0%
+
+wrong: 68 -> clusters: {'abstained': 8, 'over_positive': 46, 'over_negative': 14}
+example wrong rows:
+  [negative|positive|1.0★|+0.915] The added value was great, but no mo   Purchasing an Amazon gift card came with an added 
+  [neutral |positive|3.0★|+0.827] Gift                                   Hope it is easy to get use.
+  [neutral |positive|3.0★|+0.226] Should say who it is from              Should say who it is from, nice packaging but nowh
+  [neutral |positive|3.0★|+0.232] Three Stars                            Did not explain how to get the bonus of $10 so I l
+  [neutral |positive|3.0★|+0.349] Great last min gift.                   Hate that Visa does processing fee but what are go
+  [negative|positive|1.0★|+0.329] Showed up and packaging was fine but   Showed up and packaging was fine but card was all 
+  [neutral |negative|3.0★|+0.226] Bent                                   The card was bent and looked terrible. I wanted a 
+  [neutral |negative|3.0★|-0.661] No place to write a message            The box looks pretty but there is no place to writ
+  [neutral |positive|3.0★|+0.584] Tin is 3 dollars                       I didn't realize that I was paying for the tin whi
+  [neutral |negative|3.0★|-0.250] Order something other than the flowe   This was not giftable, as the back was torn and yo
+  [negative|neutral |2.0★|+0.000] Asked for message to be included and   Recipient did not even know who this was from even
+  [neutral |positive|3.0★|+0.440] Three Stars                            Gift.
+  [neutral |positive|3.0★|+0.848] Don't ever put a lot of money on it    It was a huge pain in the butt trying to load and 
+  [neutral |positive|3.0★|+0.689] Unable to credit my account.  Lost $   I was Not able to load it onto my account!  I call

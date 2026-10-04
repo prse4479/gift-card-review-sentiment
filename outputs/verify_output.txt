@@ -1,0 +1,3 @@
+full-diagonal agree: 134532/152410 = 88.3% (non-diagonal 17878)
+
+ALL 14 CHECKS PASS — page numbers == saved-file numbers

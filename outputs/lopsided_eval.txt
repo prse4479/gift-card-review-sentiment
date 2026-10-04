@@ -1,0 +1,10 @@
+ORIGINAL LOPSIDED EVALUATION (binary key >=4 positive, else negative)
+
+[first 100 rows in file] 100 reviews
+  agreement            : 94/100 = 94.0%
+  positive-class share : 93/100 = 93.0%  (what 'always say positive' would score)
+  true negatives       : 7  -> caught 2 (28.6%)  <- tiny denominator
+[random 100 (seed 42)] 100 reviews
+  agreement            : 90/100 = 90.0%
+  positive-class share : 88/100 = 88.0%  (what 'always say positive' would score)
+  true negatives       : 12  -> caught 10 (83.3%)  <- tiny denominator

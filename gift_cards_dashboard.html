@@ -1,0 +1,2173 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gift Card Review Classifier — Results</title>
+<!-- Recolor the whole dashboard by editing the tokens in :root below. -->
+<style>
+  :root {
+    --bg:        #0f1218;   /* page background            */
+    --panel:     #171b23;   /* card / panel background    */
+    --panel-2:   #1d222c;   /* nested / hover background  */
+    --hairline:  #272e3a;   /* borders & dividers         */
+    --ink:       #e9ecf2;   /* primary text               */
+    --ink-2:     #a7b0c0;   /* secondary text             */
+    --ink-3:     #6b7484;   /* tertiary / captions        */
+    --accent:    #d9a441;   /* brand accent (gold)         */
+    --pos:       #58b383;   /* positive semantic           */
+    --neg:       #e27364;   /* negative semantic           */
+    --neu:       #7e8ba1;   /* neutral semantic            */
+    --radius:    12px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
+  body {
+    font-family: var(--font); font-size: 15px; line-height: 1.55; color: var(--ink);
+    background: radial-gradient(1100px 400px at 85% -10%, rgba(217,164,65,.06), transparent 60%), var(--bg);
+    -webkit-font-smoothing: antialiased; padding: 48px 28px 72px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  header { margin-bottom: 40px; }
+  .kicker { font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+            color: var(--accent); font-weight: 600; margin-bottom: 10px; }
+  h1 { font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+  header p.sub { color: var(--ink-2); margin-top: 8px; max-width: 62ch; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .chip { font-size: 12px; color: var(--ink-2); background: var(--panel);
+          border: 1px solid var(--hairline); border-radius: 999px; padding: 4px 12px;
+          font-variant-numeric: tabular-nums; }
+  .chip b { color: var(--ink); font-weight: 600; }
+  section { margin-top: 52px; }
+  .sec-head { margin-bottom: 18px; }
+  .sec-head h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+  .sec-head p { color: var(--ink-2); font-size: 13.5px; margin-top: 4px; max-width: 70ch; }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  .metric { background: var(--panel); border: 1px solid var(--hairline);
+            border-radius: var(--radius); padding: 18px 20px 16px; }
+  .metric .label { font-size: 11px; text-transform: uppercase; letter-spacing: .14em;
+                   color: var(--ink-3); font-weight: 600; }
+  .metric .value { font-size: 34px; font-weight: 700; letter-spacing: -.02em;
+                   font-variant-numeric: tabular-nums; margin-top: 6px; line-height: 1.1; }
+  .metric .value small { font-size: 17px; font-weight: 600; color: var(--ink-3); }
+  .metric .note { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+  .accent-rule { height: 2px; width: 26px; border-radius: 2px; margin-top: 10px; }
+  .split { display: grid; grid-template-columns: 300px 1fr; gap: 26px; align-items: center; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+  .donut-wrap { display: flex; align-items: center; gap: 22px; }
+  .donut-legend { display: grid; gap: 10px; }
+  .legend-row { display: flex; align-items: baseline; gap: 10px; font-size: 13.5px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; align-self: center; }
+  .legend-row .l { color: var(--ink-2); }
+  .legend-row .n { font-variant-numeric: tabular-nums; font-weight: 650; margin-left: auto; }
+  .clusters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .clusters { grid-template-columns: 1fr; } }
+  .cluster { background: var(--panel); border: 1px solid var(--hairline);
+             border-radius: var(--radius); padding: 16px 18px; }
+  .cluster .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cluster h3 { font-size: 13.5px; font-weight: 650; margin: 2px 0 6px; }
+  .cluster p { font-size: 12.5px; color: var(--ink-2); }
+  .cm { display: grid; grid-template-columns: 150px 1fr 1fr 1fr; gap: 8px; max-width: 760px; }
+  .cm .cell { border: 1px solid var(--hairline); border-radius: 10px;
+              padding: 14px 16px; background: var(--panel); }
+  .cm .cell .n { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cm .cell .p { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .cm .head { font-size: 11px; text-transform: uppercase; letter-spacing: .14em;
+              color: var(--ink-3); font-weight: 600; border: none; background: none; padding: 4px 16px; }
+  .cm .rowlab { font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; }
+  .cm .rowlab b { color: var(--ink); }
+  .cm .good { border-color: rgba(88,179,131,.35); }
+  .cm .bad  { border-color: rgba(226,115,100,.25); }
+  .classbars { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 30px; max-width: 700px; }
+  @media (max-width: 760px) { .classbars { grid-template-columns: 1fr; } }
+  .bar-row { margin-bottom: 14px; }
+  .bar-row .bt { display: flex; justify-content: space-between; font-size: 12.5px;
+                 color: var(--ink-2); margin-bottom: 5px; }
+  .bar-row .bt b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .track { height: 8px; background: var(--panel-2); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 99px; }
+
+  /* ---- descriptive: star distribution & per-class splits ---- */
+  .starrows { display: grid; gap: 10px; max-width: 640px; }
+  .star-row .srt { display: flex; justify-content: space-between; font-size: 13px;
+                   color: var(--ink-2); margin-bottom: 5px; }
+  .star-row .srt b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .star-row .track { height: 14px; }
+  .split-cards { display: grid; gap: 14px; }
+  .split-card { background: var(--panel); border: 1px solid var(--hairline);
+                border-radius: var(--radius); padding: 16px 18px; }
+  .split-card .sc-head { display: flex; align-items: baseline; justify-content: space-between;
+                         gap: 12px; margin-bottom: 10px; }
+  .split-card .sc-head h3 { font-size: 14px; font-weight: 650; }
+  .split-card .sc-right { font-size: 13px; color: var(--ink-2); white-space: nowrap;
+                          font-variant-numeric: tabular-nums; }
+  .split-card .sc-right b { color: var(--ink); font-weight: 700; }
+  .splitbar { display: flex; height: 26px; border-radius: 8px; overflow: hidden;
+              border: 1px solid var(--hairline); }
+  .splitbar .seg { height: 100%; min-width: 0; display: flex; align-items: center;
+                   justify-content: center; font-size: 11px; font-weight: 700;
+                   color: #0b0e13; }
+  .seg-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 12px;
+                color: var(--ink-2); }
+  .seg-legend .sl { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch-s { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .verdict { margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
+  .verdict b { font-weight: 650; }
+  .examples { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .examples { grid-template-columns: 1fr; } }
+  .review { background: var(--panel); border: 1px solid var(--hairline);
+            border-radius: var(--radius); padding: 16px 18px;
+            display: flex; flex-direction: column; gap: 8px; }
+  .review .rtitle { font-weight: 650; font-size: 14px; }
+  .review .rtext { font-size: 13px; color: var(--ink-2); }
+  .review .rmeta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+  .tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--hairline);
+         color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tag.pos { color: var(--pos); border-color: rgba(88,179,131,.4); background: rgba(88,179,131,.08); }
+  .tag.neg { color: var(--neg); border-color: rgba(226,115,100,.4); background: rgba(226,115,100,.08); }
+  .tag.neu { color: var(--neu); border-color: rgba(126,139,161,.35); background: rgba(126,139,161,.08); }
+  .toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .searchbox { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+  .searchbox input { width: 100%; font: inherit; font-size: 13px; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--hairline); border-radius: 999px;
+    padding: 8px 16px 8px 36px; outline: none; transition: border-color .15s ease; }
+  .searchbox input::placeholder { color: var(--ink-3); }
+  .searchbox input:focus { border-color: var(--accent); }
+  .searchbox .mag { position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    color: var(--ink-3); font-size: 14px; line-height: 1; }
+  .showcount { font-size: 12.5px; color: var(--ink-2); margin-left: auto;
+               font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .showcount b { color: var(--ink); font-weight: 650; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .fbtn { font: inherit; font-size: 12.5px; cursor: pointer; background: var(--panel);
+          color: var(--ink-2); border: 1px solid var(--hairline); border-radius: 999px;
+          padding: 5px 14px; transition: all .15s ease; }
+  .fbtn .fcnt { display: inline-block; min-width: 18px; text-align: center; margin-left: 6px;
+    background: rgba(126,139,161,.15); color: var(--ink-2); font-size: 11px; font-weight: 650;
+    border-radius: 99px; padding: 1px 5px; font-variant-numeric: tabular-nums; }
+  .fbtn:hover { border-color: var(--ink-3); }
+  .fbtn:disabled { opacity: .45; cursor: default; }
+  .fbtn:disabled:hover { border-color: var(--hairline); }
+  .fbtn.active { background: var(--accent); color: #14100a; border-color: var(--accent); font-weight: 650; }
+  .fbtn.active .fcnt { background: rgba(20,16,10,.18); color: #14100a; }
+  .pager { display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+           margin-top: 14px; }
+  .pageinfo { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .pageinfo b { color: var(--ink); font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .12em;
+       color: var(--ink-3); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--hairline); }
+  td { padding: 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  tbody tr { transition: background .12s ease; }
+  tbody tr:hover { background: var(--panel-2); }
+  td .tt { font-weight: 600; }
+  td .tx { color: var(--ink-2); margin-top: 2px; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 99px; margin-right: 8px; }
+  .status { display: inline-flex; align-items: center; gap: 7px; font-weight: 650;
+            font-variant-numeric: tabular-nums; }
+  .status.ok   { color: var(--pos); }
+  .status.bad  { color: var(--neg); }
+  .empty { color: var(--ink-3); padding: 22px; text-align: center; font-size: 13px; }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--hairline);
+           font-size: 12px; color: var(--ink-3); max-width: 90ch; }
+  footer code { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Gift Card Review Classifier — Results</h1>
+    <p class="sub">A text-only sentiment classifier judged against a three-class
+      rating-derived answer key, on a balanced sample of Amazon gift card reviews.</p>
+    <div class="meta-row" id="meta"></div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <h2>Headline</h2>
+      <p>Scored on a balanced 150-review sample (≈50 per class, drawn at fixed random from the
+         whole file). The model is text-only; the star rating is used solely to build the answer key afterwards.</p>
+    </div>
+    <div class="metrics" id="metrics"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>The data — star-rating distribution</h2>
+      <p>All 152,410 reviews, by the stars the reviewer actually gave. Bars are tinted by the
+        answer-key class they belong to (4-5★ green, 3★ slate, 1-2★ red). This imbalance is
+        exactly why the evaluation uses a balanced sample — otherwise the 3★ and 1-2★ tiers
+        would be invisible.</p>
+    </div>
+    <div id="starDist"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Where each class's reviews went</h2>
+      <p>The balanced sample (50 reviews per class): for each answer-key class, which label the
+        model assigned to those 50 reviews. The green segment is the part answered right; the
+        other segments are the failures — visible without any drilling.</p>
+    </div>
+    <div id="byClass"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Right vs wrong</h2>
+      <p>Correct calls vs mistakes on the balanced sample, split into three error clusters.</p>
+    </div>
+    <div class="split">
+      <div class="donut-wrap">
+        <svg id="donut" width="170" height="170" viewBox="0 0 170 170"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+      <div class="clusters" id="clusters"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Confusion matrix — balanced sample (150 reviews)</h2>
+      <p>Rows are the model's prediction; columns are the answer-key truth
+         (4-5★ positive · 3★ neutral · 1-2★ negative) — the same numbers as
+         the results table in the README.</p>
+    </div>
+    <div class="cm" id="cm"></div>
+    <div class="classbars" id="classbars"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>How mistakes cluster — with examples</h2>
+      <p>Every error across the full dataset falls into one of three clusters.
+         Real reviews from each, verbatim.</p>
+    </div>
+    <div id="examples"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Per-review detail — all 150 sampled calls</h2>
+      <p>Every review in the balanced sample, correct and mismatched alike. Filter by
+        outcome, type a keyword to search, and watch the live count update.</p>
+    </div>
+    <div class="toolbar">
+      <div class="searchbox">
+        <span class="mag">🔍</span>
+        <input id="search" type="text" placeholder="Search title or text…" autocomplete="off">
+      </div>
+      <div class="showcount" id="showCount"></div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <table id="detail">
+      <thead>
+        <tr><th>Outcome</th><th>Rating</th><th>Answer key</th><th>Model said</th><th>Score</th><th>Review</th></tr>
+      </thead>
+      <tbody id="detailBody"></tbody>
+    </table>
+    <div class="pager" id="pager" style="display:none"></div>
+    <p class="empty" id="detailEmpty" style="display:none">No reviews match this filter + search combo.</p>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const DATA = {
+ "meta": {
+  "dataset": "Amazon Gift Card reviews",
+  "generated": "2026-10-03",
+  "answer_key": "4-5★ → positive · 3★ → neutral · 1-2★ → negative",
+  "sampling": "balanced: 50 per class, drawn from the whole file",
+  "model": "phrase pre-check + VADER (text only; rating never read)"
+ },
+ "full": {
+  "total": 152410,
+  "label_dist": {
+   "positive": 125341,
+   "neutral": 250,
+   "negative": 8941
+  },
+  "confusion": {
+   "positive": {
+    "positive": 125341,
+    "neutral": 2040,
+    "negative": 4497
+   },
+   "neutral": {
+    "positive": 6266,
+    "neutral": 250,
+    "negative": 761
+   },
+   "negative": {
+    "positive": 3333,
+    "neutral": 981,
+    "negative": 8941
+   }
+  },
+  "truth": {
+   "positive": 134940,
+   "neutral": 3271,
+   "negative": 14199
+  },
+  "precision": {
+   "positive": 95.0,
+   "neutral": 3.4,
+   "negative": 67.5
+  },
+  "recall": {
+   "positive": 92.9,
+   "neutral": 7.6,
+   "negative": 63.0
+  },
+  "agree": 88.3,
+  "cluster_counts": {
+   "abstained": 7027,
+   "over_positive": 6537,
+   "over_negative": 4314
+  },
+  "star_dist": [
+   {
+    "star": 1,
+    "count": 12326,
+    "pct": 8.1,
+    "cls": "negative"
+   },
+   {
+    "star": 2,
+    "count": 1873,
+    "pct": 1.2,
+    "cls": "negative"
+   },
+   {
+    "star": 3,
+    "count": 3271,
+    "pct": 2.1,
+    "cls": "neutral"
+   },
+   {
+    "star": 4,
+    "count": 6692,
+    "pct": 4.4,
+    "cls": "positive"
+   },
+   {
+    "star": 5,
+    "count": 128248,
+    "pct": 84.1,
+    "cls": "positive"
+   }
+  ]
+ },
+ "sample": {
+  "n": 150,
+  "agree": 82,
+  "clusters": {
+   "abstained": 8,
+   "over_positive": 46,
+   "over_negative": 14
+  },
+  "per_pred": {
+   "positive": [
+    95,
+    49
+   ],
+   "neutral": [
+    10,
+    2
+   ],
+   "negative": [
+    45,
+    31
+   ]
+  },
+  "per_truth": {
+   "positive": [
+    50,
+    49
+   ],
+   "neutral": [
+    50,
+    2
+   ],
+   "negative": [
+    50,
+    31
+   ]
+  },
+  "all": [
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.9151,
+    "title": "The added value was great, but no more",
+    "text": "Purchasing an Amazon gift card came with an added monetary value but no more.<br /><br />A Bronx cheer for you!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.3612,
+    "title": "Works",
+    "text": "Thank You",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.8271,
+    "title": "Gift",
+    "text": "Hope it is easy to get use.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "It’s a gift card",
+    "text": "It’s a gift card, there is nothing else to say.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.2263,
+    "title": "Should say who it is from",
+    "text": "Should say who it is from, nice packaging but nowhere on it does it say who sent it.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.2225,
+    "title": "It’s not what I thought it was",
+    "text": "Sorry I’m was new at this!!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.8316,
+    "title": "Five Stars",
+    "text": "love it; thanks a million to My Amazon",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.2315,
+    "title": "Three Stars",
+    "text": "Did not explain how to get the bonus of $10 so I lost it.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.3489,
+    "title": "Great last min gift.",
+    "text": "Hate that Visa does processing fee but what are gonna do!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.3294,
+    "title": "Showed up and packaging was fine but card was all scratch up and back had ...",
+    "text": "Showed up and packaging was fine but card was all scratch up and back had black marks like it was stuck in a machine.<br />Not worth shipping it back.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9704,
+    "title": "If this is a gift, you're going to want to buy two; one for them and one for you!",
+    "text": "Firehouse Subs is spectacular! Their tasty subs come with steamed meat, &#34;fully involved&#34; fresh ingredients, and perfectly toasted bread, making for a great meal any time of the day. In addition, they have a great selection of hot sauces in the store if you like your sandwiches to have a little &#34;kick.&#34; Try this place and you'll be hooked (and laddered)! Yum!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": 0.2263,
+    "title": "Bent",
+    "text": "The card was bent and looked terrible. I wanted a nicer presentation. Oh well.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.7906,
+    "title": "Bad Condition",
+    "text": "The card was folded and in bad condition.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Five Stars",
+    "text": "Gift for brother-in-law.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7184,
+    "title": "Cute presentation",
+    "text": "Sooo cute",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.6808,
+    "title": "Nice",
+    "text": "Nice",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.6607,
+    "title": "No place to write a message",
+    "text": "The box looks pretty but there is no place to write a message on...I have to write at the back of the box which doesn't look good.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.5838,
+    "title": "Tin is 3 dollars",
+    "text": "I didn't realize that I was paying for the tin which was 3 dollars.  Either I missed that or they need to make that more clear!  It was a nice tin though",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9325,
+    "title": "Great, thanks",
+    "text": "Great, thanks",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.6588,
+    "title": "Five Stars",
+    "text": "Great!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.25,
+    "title": "Order something other than the flowers",
+    "text": "This was not giftable, as the back was torn and you couldn’t pull the flowers up and down.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Asked for message to be included and it was not",
+    "text": "Recipient did not even know who this was from even though I specified the message to be included.",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "20 gift card",
+    "text": "Its a 20 dollar gift cars",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Three Stars",
+    "text": "Gift.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.9404,
+    "title": "A fraud!",
+    "text": "For 48 hrs I have tried to check the balance or register this card - won’t work online, says to call customer service, call that and most of the time it says the system is down, finally get thru and only automated system which says it can’t find the card number.  No human to talk to.  Now trying to see if I can get my $200 back from Amazon!!!!  Even worse I gave a bunch of these cards in smaller denominations as gifts and I’m so embarrassed that I may have given fraudulent gifts.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.7964,
+    "title": "gross USED gift card",
+    "text": "The carboard the card was attached to was ripped and the card definitely has swipe marks.  Not exactly what you want in something you are planning on giving as a gift.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7783,
+    "title": "Trustworthy",
+    "text": "Pretty box",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9674,
+    "title": "Everyone loves an Amazon card",
+    "text": "Makes for a great gift, love the package and ships perfectly",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.802,
+    "title": "Gift",
+    "text": "Grandson liked the card and I don't think it mattered what it came in.  I did like the design of the box though and it added a little something to just a card....",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.8481,
+    "title": "Don't ever put a lot of money on it and buy something",
+    "text": "It was a huge pain in the butt trying to load and then when I tried to pay for something you wouldn't take it from the gift card you kept trying to charge my credit and debit cards and it ended up charging me fees up the wazoo and locking my account. So then I had to get my account unlocked all so I could go through it again so then I tried logging in from somewhere else and miraculously it worked fine. So all of that nonsense to buy my sons Christmas gift and now I'm out an extra $45. Otherwise it's usually great.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.09,
+    "title": "Beware USPS in tanks",
+    "text": "This was supposed to be a Christmas present. When it finally arrived after New Year's the post office appeared to have driven over the snowflake in a tank.  Amazon were quick to refund the purchase price but having emailed us that we could use the card in anyway we wished, the code was dysfunctional.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.6892,
+    "title": "Unable to credit my account.  Lost $25. 00",
+    "text": "I was Not able to load it onto my account!  I called customer service,  who screwed around for the better part of an hour,  with me giving them All the information. Both on the card and activation slip I got from the cashier but ended by saying they would \"investigate  and would credit me in a few days.  Its been 2 weeks and... Nothing!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "I thought the $6.95 charge was excesive",
+    "text": "The loading charge I thought was excessive",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.8978,
+    "title": "Not satisfied with this dryer.",
+    "text": "The hood is not adjustable only one height. I had a Conair Dryer years ago that had adjustable hood. Quite frustrating and difficult to use without having to prop up pillows in a high chair to dry my hair on a lower counter. Not a good purchase for me.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.5719,
+    "title": "It's a scam",
+    "text": "I was supposed to get some kind of a deal or discount for purchasing the reload. I did not",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.1423,
+    "title": "Good Only for Use in the USA and not for Internet/telephone/mail orders outside",
+    "text": "I think there should be a clear description in the Amazon webpage product information, that is lacking, and unfortunately  found out after 3 separate purchases of the card and thought a merchant was at fault.  The 3rd time, I read the microprint sheet that accompanied the mastercard and read the following:<br /><br /> \"Your card is valid in the U.S. only...it cannot be used at merchants  outside the United States, including internet and mail/telephone order merchants outside the United States...\"<br /><br />So the purchase of all 3 cards was worthless and the extra money that you pay to get this card was for naught.  Extremely disappointing  I lost $5.95 on this card, $4.95 on another, and $4.95 on another - charges to buy the card on top of its value.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.3919,
+    "title": "To use everywhere",
+    "text": "Came fast but only could use it on certain stuff",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.7143,
+    "title": "No denomination?",
+    "text": "Where's the denomination amount? Won't purchase again. Ordered 10 gift cards. In the past there was an amount. Know I have to do the extra work to read the tiny serial numbers.  Very disappointing.  Will purchase from stores in the future.  Bad move Amazon.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Five Stars",
+    "text": "thanks",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9168,
+    "title": "Xmas gift for my mom",
+    "text": "Works like a gift card should. It's really hard to shop for my mom since she is alway's doing something different! A gift card to her favorite store should do the trick!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": 0.1298,
+    "title": "Cute",
+    "text": "Super cute design… but I’m not sure what happened when it was packaged, as the wrapping is torn and so is the card.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": 0.7506,
+    "title": "Missing Bottom Lid",
+    "text": "Super cute gift holder ornament tin. However, it was missing the bottom part.  I was not able to return or request another one due to time constraints.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9442,
+    "title": "Love this",
+    "text": "Loved everything about this and it is free for the holder…that’s wonderful",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.765,
+    "title": "Fun",
+    "text": "Fun to give",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.6123,
+    "title": "One Star",
+    "text": "was a mistake, lol but i still got my money in items so ok",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Five Stars",
+    "text": "Easy",
+    "cluster": "correct"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.3765,
+    "title": "not good.",
+    "text": "This card has to be set up to view a specific movie at a specific theater and can not be redeemed at the theater,  only before hand... not good.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "One Star",
+    "text": "cannot use for telephone order",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.6808,
+    "title": "Good way to send gifts",
+    "text": "Gift card is great and was delivered on time.  The card telling who it was from didn't make it into the package and it was an accident I found out.  They made the statement someone sent us $50 and we have no idea who.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.296,
+    "title": "You can’t use it in many stores. Read before buying",
+    "text": "I had difficulties with setting up the pin, purchases and where to use it. I didn’t really realized it was MasterCard bc I usually by VISA. It was just a lot of hassle",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9845,
+    "title": "Cute way to send a gift card",
+    "text": "I love that Amazon includes these super cute gift card holders, without charging separately for them. Even though I'm sending a gift card, I still want the packaging to be sort of cute. Love these cupcakes!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.8645,
+    "title": "Very cute!!",
+    "text": "My niece will love this!!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4767,
+    "title": "Five Stars",
+    "text": "Bought this for my assistant.  She buys from Amazon often and was excited to buy more.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.8713,
+    "title": "Does not fulfill promises",
+    "text": "Amazon applied a $100 gift card to my account.  They will not apply the $8 to my account,  as promised.  I am disabled, every penny helps. Don't rip off customers!  EDITED:  after spending  LITERALLY an HOUR on the phone I was credited the $8.  I had to talk to a supervisor,  and they made it sound like they were only giving it to me to shut me up, though.  The rating stands!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.9032,
+    "title": "Be careful, they keep asking for more!",
+    "text": "It was easy to do. But it made me a little uneasy when it showed up in email asking if I wanted to add more money to my gift card. It made it look like they were just going to automatically add money that I didn't okay. You have to be  careful what you click on with Amazon. When I want to add more money, I will do the initializing. It might just be a polite reminder, but I don't like it when places keep asking for money or for you to buy things. Amazon is good at this practice...",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 4.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7269,
+    "title": "I live in P.R. and I got it withing a week.",
+    "text": "It was a gift for a friend.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.6977,
+    "title": "Box was slightly dented and cheap card quality.",
+    "text": "I received a slightly dented box. It wasn't very visible, but because it was so hollow, I would prefer something of a slightly more solid build quality. Also, the gift card quality felt very cheap.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.3164,
+    "title": "Five Stars",
+    "text": "Conveniently used for PlayStore Card! ;-)",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.1526,
+    "title": "The bow is not gold it's pink",
+    "text": "I am giving it to my son and the bow is pink. Not happy.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.689,
+    "title": "Unremovable sticker over claim code",
+    "text": "I did finally manage to scrape the sticker that was hiding the claim code off with a very sharp knife and piece together the claim code. I really shouldn't have to go through this to redeem my gift card.<br /><br />Amazon seems to have fallen in love with putting these nonremovable stickers on everything. Every book I've bought from them lately has had at least 2 of the damn things on it. A new book should be a thing of beauty. Not when Amazon gets ahold of it first.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "Easy to use",
+    "text": "Easy to use, home goodsExcellent",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.7351,
+    "title": "Wrong",
+    "text": "Wrong card",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Three Stars",
+    "text": "gfh",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.5106,
+    "title": "Not worth it EXP date too far in future!",
+    "text": "Dislike! Can’t use it with online purchases because the exp date on the gift card is 2027! What a crock! So now an easy gift for my daughter is a burden. Between work and toddler she now has to go to the store to order everything she was going to buy online and won’t get done of the online deals as a result! Yup - not worth it!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.5994,
+    "title": "Five Stars",
+    "text": "Loved it.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7351,
+    "title": "Okay",
+    "text": "These are okay, you get $45 for Fandango, which I bought as a Deal of the Day so it was a little less expensive, but as far as ease of use they are not good.<br /><br />There's no way to pre-load these gift cards to your account, so we had to make sure the gift cards were always with us. We usually buy our tickets on Fandango through our phone while sitting at dinner, or on the way to the theater, but if we had left the cards at home...too bad.<br /><br />There's no way to scan the cards with your phone either. That means having to type in each card number (19 digits) then scratching to reveal the pin number to type in another 4. It's a pain when purchasing multiple tickets that cost more than a single $15 dollar card so you're there typing, scratching, typing, typing, scratching, typing from several cards like a weirdo.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.1635,
+    "title": "not unusually",
+    "text": "unlike nothing, it was not special , I brought these for my spouse, he said the food was better in NJ",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 4.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.644,
+    "title": "Reload",
+    "text": "This is a great way to reload your amazon account but if you have any issues there’s really no way to contact help, but that’s basically amazon in general.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7184,
+    "title": "Amazon.com Gift Card Balance Reload",
+    "text": "I received you payment method from Marriott Rewards.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.3009,
+    "title": "Thief",
+    "text": "My card came in with money than the next day it's gone to Google play store I don't understand I want my money back",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.8402,
+    "title": "They said it usually takes 5 minutes to process. ...",
+    "text": "They said it usually takes 5 minutes to process. 4 hours later I received my credits... I did get the $5 bonus, which was satisfying.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.7346,
+    "title": "misleading",
+    "text": "very disappointing",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Good",
+    "text": "How can I return  my money to my bank.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.9684,
+    "title": "Gift Card With Exposed Claim Code",
+    "text": "Who gets an Amazon gift card with an exposed claim code?  I've always either had to pull a thin covering off or scrape a covering off to reveal the code.  This gift card that I ordered directly from Amazon came with NO covering at all on it.  A call to customer service got me NO satisfaction.  This $100 gift card was purchased to be a Christmas gift.  The box by the way is great - very pretty.  Since it is 7 weeks until Christmas (and plenty of time for a potential Amazon employee thief to use the code they exposed) all I could figure out to do was put the card on MY own Amazon account and find something else to give that person for Christmas since I'm not sure it's safe to order gift cards directly from Amazon anymore!!  Last year around Christmas the Amazon deliveries were being slit open from the bottom so they could steal items they wanted, looks like this year Amazon employees want gift cards so they can choose their own merchandise!!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7783,
+    "title": "Five Stars",
+    "text": "It's good chances to give presents for friends and family.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.686,
+    "title": "No credit given as it said.",
+    "text": "I was under the impression that you were going to get $10 off a large order, but not the case. Perhaps I just read it wrong??",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.5255,
+    "title": "Do not buy gift cards on Amazon",
+    "text": "Cards did not come activated and now neither Amazon or Best Buy is helping.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.6203,
+    "title": "Finish Line's gift card business is likely compromised. Buyer beware.",
+    "text": "PIN was intact but gift card was drained by a fraudster. Other Finish Line gift card in my order was ok. Amazon and Finish Line would not help me. Finish Line's gift card business is likely compromised. Buyer beware.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.6229,
+    "title": "Easier!",
+    "text": "Quick and no need to go out to the store to buy a gift card!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.7385,
+    "title": "What a deal.",
+    "text": "Was going to order a gift card but I'm glad I read these reviews first.  Will not order!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.0,
+    "title": "As expected",
+    "text": "As expected",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.5647,
+    "title": "Item was not redeemable",
+    "text": "The item was not redeemable.  I spent 200 for the gift card but it could not be used and Amazon refuses to issue a refund.  The worst service I have ever seen.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.5827,
+    "title": "Speedy!",
+    "text": "It processed in 10 minutes. It was very useful and it was VERY quick!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.9337,
+    "title": "Good and confounding",
+    "text": "I received this as a gift. It is a ver cute and adorable gift card presentation; however, there is no where it states the value even when i scan the qr code",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.696,
+    "title": "Highly Disappointed!",
+    "text": "I was very unhappy with this purchase!! I bought this as a Christmas gift and when the recipient tried to use it...no money was on the card!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.6656,
+    "title": "Three Stars",
+    "text": "you can never go wrong for a gift card",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": 0.7227,
+    "title": "One didn’t work",
+    "text": "Bought 2 card a for family members.  One didn’t work. But it was easy to get a refund and when I ordered a replacement, it worked fine.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "Easy to send",
+    "text": "Sent as a gift",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.7414,
+    "title": "Torn",
+    "text": "The sleeve was torn upon arrival so that sucked.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.7167,
+    "title": "Do not order gift cards. They don’t arrive!!",
+    "text": "Do not order gift cards. They don’t arrive!!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Gifted for Christmas, guest tried to use it, shows ZERO on card.",
+    "text": "Purchased a batch, guest tried to use it the other day and his balance shows ZERO.",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Will not buy this card again",
+    "text": "I tried buying things off facebook but was unable",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.0,
+    "title": "CARDS DON'T WORK",
+    "text": "BOUGHT 4 OF THESE CARDS as Christmas gifts.  Recieved an email stating the CARDS weren't activated.  I received 4 more cards. Went on vacation in Disney tried to use the cards.  Still don't work . I bought along all of the cards the ones they told me weren't activated and the new ones they send. Called visa cards weren't activated. DO NOT BUY FROM THIS SITE",
+    "cluster": "correct"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.8252,
+    "title": "Not worth it",
+    "text": "it does not work in stores. Every store it would say error or can’t be used at this store. There was money on it. However, it only worked online which was very inconvenient. Would not buy again. The point of this card was to be able to use it in stores or while traveling. Embarrassing.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.1027,
+    "title": "The card and the outbox look so cheap. I ...",
+    "text": "The card and the outbox look so cheap. I would be embarrassed to give to someone else as a gift.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.2462,
+    "title": "Mangled tin!",
+    "text": "The tin was so mangled I could not bend it back into shape to completely close.  I had to apologize to the recipient that it looked used!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.0516,
+    "title": "Its cool",
+    "text": "Reload is cool but I couldnt figure out how to cancel one that didnt go through the first time.",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "negative",
+    "score": -0.2225,
+    "title": "Got some prepaid cards lying around that can fulfill a ...",
+    "text": "Got some prepaid cards lying around that can fulfill a full purchase? Put them in your amazon account! Every dollar counts!",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.0,
+    "title": "Five Stars",
+    "text": "Just as described.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Ok",
+    "text": "Why would I rate a gift card that I put on here-makes no sense",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Tin dented",
+    "text": "Came in slightly dented",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.4939,
+    "title": "Cool....but",
+    "text": "Pretty simple. Works @ any WFM. Big criticism: card needs a digital component . For example Target reload GiftCards may be registered & used on mobile devices. Better integration of analog & cloud would really bring me back in the future.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.9607,
+    "title": "INSISTS ON CHARGING MY PURCHASES ON AMAZON AGAINST THE GIFT ...",
+    "text": "INSISTS ON CHARGING MY PURCHASES ON AMAZON AGAINST THE GIFT CARD WHICH I HAD GIVEN TO SOMEONE AS A GIFT, MAKING ME RELOAD THE GIFT CARD EVERY TIME I MADE A PURCHASE..",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.8625,
+    "title": "I like and admire Whole Foods, however",
+    "text": "most people I know think they are too expensive.  We use them for certain things.  I won't give these again as a gift because you don't get that much for $50.00 and I gave them to college students.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.8402,
+    "title": "It’s a nicely e-shopping experience on Amazon and also their providing customer service to me.",
+    "text": "Like to buy hiking shoe which the size may not find in Taiwan and also good to be Thanksgiving gifts",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.8244,
+    "title": "This is lame",
+    "text": "This is so worthless. It tells you nothing anywhere.<br /><br />On top of this train wreck, they continue to not send me my statements.<br /><br />I would give it minus stars if I could.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "Easy",
+    "text": "Easy",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.6597,
+    "title": "Excellent feature",
+    "text": "I used it a lot in the year i've been buying on amazon and it helped me a lot",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.6419,
+    "title": "The gift box was beautiful and well decorated.",
+    "text": "I would buy this again, but ask for a different box!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7263,
+    "title": "Just for gift!",
+    "text": "For gift",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "Three Stars",
+    "text": "The gift card came by itself not in or with the gift box looking holder.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.7906,
+    "title": "Five Stars",
+    "text": "great gift",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7059,
+    "title": "How can you review a gift card?",
+    "text": "Wait, what? You want me to review a gift card? Why? That makes no sense.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.4325,
+    "title": "It worked. No problems.",
+    "text": "It worked a solid expected. Nothing about it to make me think that it exceeded my expectations so three stars it is. Maybe offer more increments?",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.1555,
+    "title": "Avoid and Do Not Use",
+    "text": "It's been a while since I have bought these. I decided to pull one out and use it for a Christmas present this year to avoid a trip to a store for one card. Big mistake. Claim code couldn't be used by the recipient and customer service told her the one who purchased it had to be the one to call in about it. Customer service couldn't make it work. I was told the serial number should only be 16 digits. Not only does the serial number on the card match the serial number that appears in the \"My Orders\" section, but the description page for the Flex card also says the serial number is 19 digits. While customer service was able to make it right, by canceling the order so I could resent (by e-gift method this time), this was a hassle that should have been able to be avoided. I get the impression that either 1) these were phased out (going by the \"Currently Unavailable\" message) and no one bothered to block the cards that were still floating around from being loaded or 2) the Flex cards (being different from cards bought in a store) have a different method to be load to accounts and no one bothered to differentiate it anywhere on the site making it impossible to load them to accounts. I like the concept behind them and I have used them before; but at this point, I will toss any I still have and recommend others do as well.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Five Stars",
+    "text": "Easy and fast",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.9158,
+    "title": "Gift Card - shipping problem",
+    "text": "Ordered a $150 boxed gift card on 2-13 with 1 click ordering. The gift card page and the individual item page all say \"free one day shipping\" everywhere. On 2-15 receive an email that the card has shipped, with a tracking number, by USPS, with estimated delivery of 2-21, from MARYLAND. I'm in Seattle - the home of Amazon - and they ship by regular snail mail from MARYLAND??? Of course, since it has shipped, there is nothing I can do to change it and I'll miss the birthday on the 18th it was purchased for.<br /><br />BUYERS BEWARE you don't get caught by the same thing. One day free shipping apparently doesn't work with 1 click ordering. I'll never order another gift card from Amazon.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.2732,
+    "title": "$3.50 charge",
+    "text": "Why did I get charged $3.50 per gift card pk?",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7495,
+    "title": "Very good type of gift.",
+    "text": "The recipient didn’t get the enclosed message I wrote,and didn’t know who sent it!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.2263,
+    "title": "Card was buried in the box. Had to go looking for it.",
+    "text": "Nice box, but when opened, the card inside was hidden. Had to go looking for it.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.5563,
+    "title": "Ten Tin",
+    "text": "The recipient thoroughly enjoyed the tin.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.8883,
+    "title": "OMG the most amazing, incredible thing ever",
+    "text": "OMG the most amazing, incredible thing ever... Oh wait they are just plastic ordinary gift cards; but I did receive an Amazon promo credit.  5 stars it is.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.6705,
+    "title": "I upload $200.00 and I only got $150 worst thing ever",
+    "text": "I pay for $200.00 and I only got $150.00 never again",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.2762,
+    "title": "Not activated and a scam",
+    "text": "Tried to redeem on website, like it says in the directions, and it stated that the  code hasn’t been activated and to see retailer, but i can’t directly contact the seller to get it activate. Epic games and amazon support was no help either.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.4404,
+    "title": "Three Stars",
+    "text": "Just needed a gift card",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.5267,
+    "title": "$25 gift card",
+    "text": "DID NOT GET TO USE GIFT CARD - IT WAS THROWN AWAY BY MISTAKE AT XMAS TIME WITH THE WRAPPINGS",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.303,
+    "title": "Shouldn't Make Promises If You Can't Keep Them",
+    "text": "I realize the weather is horrible, but why in the world is my gift card, that was supposed to be here yesterday, about 4 hours north (closer to Chicago) of where I live (close to St. Louis, MO) when it was shipped from Kentucky? This makes absolutely no sense to me...",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.3089,
+    "title": "Not timely and no help",
+    "text": "ordered on 12/21. Said we would receive it 12/23. Still don't have it on 12/28.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.4939,
+    "title": "I couldnt use the card",
+    "text": "ordered a gift card and when it arrived i couldnt use it because it wasent activated from the place of purchase i hate to leave a review like this but its the truth",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7911,
+    "title": "Don’t worded different amounts!",
+    "text": "Cute box but watch out if you are ordering more than one and in different amounts. I got 8 in the mail that all looked exactly the same and nowhere does it say how much each of them are worth! They tell you to use the app to scan to find out the amount but you have to peel off the claim code to do that. Eventually I found the serial numbers under my orders. Crazy though, the receipt in the package lists only 2 serial numbers (out of 8) and they don’t show those gift cards under the same amount! So I am having to cross fingers and hope I am sending the right amount to the right person! Never again!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.4964,
+    "title": "Not so happy",
+    "text": "I wanted to use the card at a restaurant, it automatically added 20% for a tip, then the card was declined because there wasn't enough to cover the meal and tip. I prefer to give cash for a tip",
+    "cluster": "over_negative"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.0598,
+    "title": "Five Stars",
+    "text": "whats not to love about amazon gift cards?",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.646,
+    "title": "Do not buy!",
+    "text": "When removing tape to reveal code , the tape pulls off the code and card is useless!  Called Amazon and they replaced, but same thing happened. Very upsetting.  Calling Amazon again. Had to put a star or I would not have put any.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "positive",
+    "score": 0.0644,
+    "title": "review of the 3 pack of gift cards.",
+    "text": "I would have preferred to be able to purchase in either $ 25.00 dollar increments.  The $ 15.00 for 3 or $75.00 was  inconvenient as I really wanted $ 50.00 but I wasn't offered that option.  Now the option might have been there and I just didn't see how to acccess it.",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9059,
+    "title": "They loved it!",
+    "text": "This was a gift for my son and daughter-in-law. They loved it !",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.6588,
+    "title": "Five Stars",
+    "text": "Great service and product!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.4588,
+    "title": "Five Stars",
+    "text": "Cute packaging",
+    "cluster": "correct"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": 0.6457,
+    "title": "Card slips into the box",
+    "text": "When this gift box was delivered, gift card slid into the box and it was initially misleading that we thought the card was missing. Only after pulling apart the gift box could we actually get the card out.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.8608,
+    "title": "Its great having extra for the purchase",
+    "text": "So glad it was available!!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.8395,
+    "title": "Fraud Alert",
+    "text": "Card will not activate on the portal. They dont even tell you why, I checked the recapcha is not loading because EVERY browser has protections against that. IT JUST WONT ACTIVATE. Tried over multiple days, tried calling the only, ONLY number they provide only to be told that the card info is wrong! Go figure!. This product should be banned.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7088,
+    "title": "Can I purchase coins this way",
+    "text": "If by chance you're a coin collector do not load money onto your Amazon account because you cannot purchase coins with gift cards!",
+    "cluster": "over_positive"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.5849,
+    "title": "One Star",
+    "text": "Very bad",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.8225,
+    "title": "Game Stop",
+    "text": "I was satisfied with the promptness of receiving the gift card. It's great not to have to run around and it saves on gas.",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "One Star",
+    "text": "Keep me posted",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Opened card",
+    "text": "Gift card was tampered and dirty. Barcode was opened",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.5777,
+    "title": "Five Stars",
+    "text": "It was so easy",
+    "cluster": "correct"
+   },
+   {
+    "rating": 2.0,
+    "key": "negative",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "They froze my account for a couple days",
+    "text": "They seed they would look into it and send me a email they never did",
+    "cluster": "abstained"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9429,
+    "title": "Always a great gift!",
+    "text": "Having trouble deciding on a gift?  Gift cards are perfect for that!!!",
+    "cluster": "correct"
+   },
+   {
+    "rating": 1.0,
+    "key": "negative",
+    "pred": "negative",
+    "score": -0.7849,
+    "title": "Dont use this option",
+    "text": "I had to fight them to get my refund on defective item said they do not refund gift cards, i haven't received refund yet",
+    "cluster": "correct"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "positive",
+    "score": 0.9568,
+    "title": "Cute, not functional",
+    "text": "Bought this gift card for a teacher. I loved how adorable this gift card holder looked. The only downside to the ornament is the hook wasn’t very big so I don’t think it would actually hang on a tree. Overall, I thought this was a good purchase.",
+    "cluster": "correct"
+   }
+  ],
+  "by_key": {
+   "positive": {
+    "positive": 49,
+    "neutral": 0,
+    "negative": 1
+   },
+   "neutral": {
+    "positive": 35,
+    "neutral": 2,
+    "negative": 13
+   },
+   "negative": {
+    "positive": 11,
+    "neutral": 8,
+    "negative": 31
+   }
+  },
+  "confusion": {
+   "positive": {
+    "positive": 49,
+    "neutral": 35,
+    "negative": 11
+   },
+   "neutral": {
+    "positive": 0,
+    "neutral": 2,
+    "negative": 8
+   },
+   "negative": {
+    "positive": 1,
+    "neutral": 13,
+    "negative": 31
+   }
+  }
+ },
+ "examples": {
+  "abstained": [
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Replenish",
+    "text": "Automatically replenishes"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Five Stars",
+    "text": "Will look forward for more deals"
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "neutral",
+    "score": 0.0,
+    "title": "Valid",
+    "text": "mmm... coffee."
+   }
+  ],
+  "over_positive": [
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": -0.7078,
+    "title": "Had trouble with every purchase",
+    "text": "Not sure why, but had trouble everywhere I used this card. It worked eventually but I used it a total of 3 places and not a single transaction was str"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7067,
+    "title": "The amount of each card is not displayed anywhere on it.",
+    "text": "Besides the gift card that had the dollar value preprinted on it, there was no way to tell which cards had what dollar value on them. I bought 4 cards"
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "positive",
+    "score": 0.7003,
+    "title": "Good",
+    "text": "Good"
+   }
+  ],
+  "over_negative": [
+   {
+    "rating": 4.0,
+    "key": "positive",
+    "pred": "negative",
+    "score": 0.9123,
+    "title": "Amazon can't screw up a gift card.",
+    "text": "I must say that the personalized card, is cheap computer receipt paper, NOT a real card.<br /> I only expected a small personalized card and got thin "
+   },
+   {
+    "rating": 5.0,
+    "key": "positive",
+    "pred": "negative",
+    "score": 0.9016,
+    "title": "Very easy",
+    "text": "A simple and convenient way to shop on Amazon.  Totally hassle free. I redeem Amazon Gift cards all the time."
+   },
+   {
+    "rating": 3.0,
+    "key": "neutral",
+    "pred": "negative",
+    "score": -0.9132,
+    "title": "Missing Information!",
+    "text": "Was happy with the delivery but very disappointed in that there was no gift note included as requested. Very unfortunate.."
+   }
+  ]
+ }
+};
+const $ = (id) => document.getElementById(id);
+const FMT = new Intl.NumberFormat("en-US");
+const CLS_COLOR = { positive: "var(--pos)", neutral: "var(--neu)", negative: "var(--neg)" };
+
+function tag(label, cls) { return `<span class="tag ${cls}">${label}</span>`; }
+
+function renderMeta() {
+  const m = DATA.meta;
+  $("meta").innerHTML = [
+    `<span class="chip"><b>${m.dataset}</b></span>`,
+    `<span class="chip">Model: <b>${m.model}</b></span>`,
+    `<span class="chip">Answer key: <b>${m.answer_key}</b></span>`,
+    `<span class="chip">Sample: <b>${m.sampling}</b></span>`,
+    `<span class="chip">Generated <b>${m.generated}</b></span>`,
+  ].join("");
+}
+
+function renderStarDist() {
+  // each bar's width is capped at 100%; a zero count renders a 2px sliver
+  // instead of collapsing, so the row never disappears
+  $("starDist").innerHTML =
+    `<div class="starrows">` + DATA.full.star_dist.map(s =>
+      `<div class="star-row">
+         <div class="srt"><span>${"★".repeat(s.star)} (${s.star})</span>
+           <span>${FMT.format(s.count)} · <b>${s.pct.toFixed(2)}%</b></span></div>
+         <div class="track"><div class="fill" style="width:${
+           s.pct > 0 ? Math.max(s.pct, 0.05) : 0.05}%;background:${CLS_COLOR[s.cls]}"></div></div>
+       </div>`).join("") + `</div>`;
+}
+
+function renderByClass() {
+  const by = DATA.sample.by_key;
+  const order = ["positive", "neutral", "negative"];
+  const segLabel = { positive: "model: positive", neutral: "model: neutral", negative: "model: negative" };
+  $("byClass").innerHTML = order.map((t) => {
+    const row = by[t];
+    const tot = row.positive + row.neutral + row.negative;
+    const right = row[t];
+    const segments = order.map(p => {
+      const w = (100.0 * row[p]) / tot;
+      const show = w >= 12 && row[p] > 0;  // only print the number when it fits
+      return `<div class="seg" style="flex-basis:${w}%;background:${CLS_COLOR[p]}"
+                  title="${segLabel[p]}: ${row[p]}">${show ? row[p] : ""}</div>`;
+    }).join("");
+    const verdicts = {
+      positive: `The ${row.neutral + row.negative} leak(s) went to the other classes (mostly negative).`,
+      neutral: `Read as positive ${row.positive}×, as negative ${row.negative}× — only ${right}/${tot} stayed neutral: the 3★ class collapses into the others.`,
+      negative: `Missed as positive ${row.positive}×, abstained (neutral) ${row.neutral}×.`,
+    }[t];
+    return `<div class="split-card">
+      <div class="sc-head">
+        <h3 style="color:${CLS_COLOR[t]}">Answer key: ${t} (${t === "positive" ? "4-5★" : t === "neutral" ? "3★" : "1-2★"})</h3>
+        <div class="sc-right">answered right <b style="color:${right / tot >= 0.5 ? "var(--pos)" : "var(--neg)"}">${right}/${tot}</b> (${(100 * right / tot).toFixed(0)}%)</div>
+      </div>
+      <div class="splitbar">${segments}</div>
+      <div class="seg-legend">
+        ${order.map(p => `<span class="sl"><span class="swatch-s" style="background:${CLS_COLOR[p]}"></span>${segLabel[p]} · ${row[p]}</span>`).join("")}
+      </div>
+      <div class="verdict">${verdicts}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderMetrics() {
+  const s = DATA.sample;
+  const agree = 100 * s.agree / s.n;
+  const cards = [
+    ["Agreement", `${agree.toFixed(1)}%`, `${s.agree}/${s.n} calls match the 3-class key`, "var(--accent)"],
+    ["Positive recall", `${(100*s.per_truth.positive[1]/s.per_truth.positive[0]).toFixed(1)}%`, "of 4-5★ reviews, caught by the model", "var(--pos)"],
+    ["Negative recall", `${(100*s.per_truth.negative[1]/s.per_truth.negative[0]).toFixed(1)}%`, "of 1-2★ reviews, caught by the model", "var(--neg)"],
+    ["Neutral recall", `${(100*s.per_truth.neutral[1]/s.per_truth.neutral[0]).toFixed(1)}%`, "of 3★ reviews, caught by the model", "var(--neu)"],
+  ];
+  $("metrics").innerHTML = cards.map(([label, value, note, color]) =>
+    `<div class="metric">
+       <div class="label">${label}</div>
+       <div class="value">${value}</div>
+       <div class="note">${note}</div>
+       <div class="accent-rule" style="background:${color}"></div>
+     </div>`).join("");
+}
+
+function renderSplit() {
+  const s = DATA.sample;
+  const C = 2 * Math.PI * 62;
+  const segs = [
+    { v: s.agree, color: "var(--pos)" },
+    { v: s.n - s.agree, color: "var(--neg)" },
+  ];
+  let off = 0;
+  const circles = segs.map(p => {
+    const frac = p.v / s.n;
+    const c = `<circle cx="85" cy="85" r="62" fill="none" stroke="${p.color}" stroke-width="20"
+      stroke-dasharray="${(frac*C).toFixed(1)} ${C.toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}"
+      transform="rotate(-90 85 85)"/>`;
+    off += frac * C;
+    return c;
+  }).join("");
+  $("donut").innerHTML =
+    `<circle cx="85" cy="85" r="62" fill="none" stroke="var(--panel-2)" stroke-width="20"/>` + circles +
+    `<text x="85" y="81" text-anchor="middle" fill="var(--ink)" font-size="27" font-weight="700">${Math.round(100*s.agree/s.n)}%</text>
+     <text x="85" y="100" text-anchor="middle" fill="var(--ink-3)" font-size="10" letter-spacing="1">RIGHT</text>`;
+  $("donutLegend").innerHTML = [
+    ["Correct", s.agree, "var(--pos)"],
+    ["Wrong", s.n - s.agree, "var(--neg)"],
+    ["of which: abstained (neutral)", s.clusters.abstained, "var(--neu)"],
+    ["of which: over-positive", s.clusters.over_positive, "var(--neg)"],
+    ["of which: over-negative", s.clusters.over_negative, "var(--neg)"],
+  ].map(([l, v, color]) =>
+    `<div class="legend-row"><span class="swatch" style="background:${color}"></span>
+     <span class="l">${l}</span><span class="n">${v}</span></div>`).join("");
+
+  $("clusters").innerHTML = [
+    ["var(--neu)", "Abstained", s.clusters.abstained,
+     "Model said “neutral” (no sentiment words in text) but the key says positive or negative."],
+    ["var(--neg)", "Over-positive", s.clusters.over_positive,
+     "Model said positive; key says 3★ or 1-2★. Complaints buried under positive vocabulary."],
+    ["var(--neg)", "Over-negative", s.clusters.over_negative,
+     "Model said negative; key says 3★ or 4-5★. Critical wording from a satisfied reviewer."],
+  ].map(([color, title, n, desc]) =>
+    `<div class="cluster"><div class="big" style="color:${color}">${n}</div>
+     <h3>${title}</h3><p>${desc}</p></div>`).join("");
+}
+
+function renderCM() {
+  const s = DATA.sample, conf = s.confusion;
+  const order = ["positive", "neutral", "negative"];
+  let html = `<div class="head"></div>` +
+    order.map(t => `<div class="head" style="color:${CLS_COLOR[t]}">Truth: ${t === "positive" ? "positive (4-5★)" : t === "neutral" ? "neutral (3★)" : "negative (1-2★)"}</div>`).join("");
+  for (const p of order) {
+    html += `<div class="rowlab"><b style="color:${CLS_COLOR[p]}">Model: ${p}</b></div>`;
+    for (const t of order) {
+      const v = conf[p][t];
+      const denom = s.per_truth[t][0];
+      const cls = p === t ? "good" : "bad";
+      html += `<div class="cell ${cls}">
+                 <div class="n" style="color:${CLS_COLOR[p]}">${FMT.format(v)}</div>
+                 <div class="p">${(100 * v / denom).toFixed(1)}% of true ${t}</div>
+               </div>`;
+    }
+  }
+  $("cm").innerHTML = html;
+
+  const bars = [];
+  for (const t of order) {
+    const [tot, corr] = s.per_truth[t];
+    const rec = tot ? 100 * corr / tot : 0;
+    bars.push(`<div class="bar-row"><div class="bt"><span>Recall — true <b style="color:${CLS_COLOR[t]}">${t}</b></span><b>${rec.toFixed(1)}%</b></div>
+      <div class="track"><div class="fill" style="width:${rec}%;background:${CLS_COLOR[t]}"></div></div></div>`);
+  }
+  for (const p of order) {
+    const [tot, corr] = s.per_pred[p];
+    const prec = tot ? 100 * corr / tot : 0;
+    bars.push(`<div class="bar-row"><div class="bt"><span>Precision — model says <b style="color:${CLS_COLOR[p]}">${p}</b></span><b>${prec.toFixed(1)}%</b></div>
+      <div class="track"><div class="fill" style="width:${prec}%;background:${CLS_COLOR[p]}"></div></div></div>`);
+  }
+  $("classbars").innerHTML = `<div>${bars.slice(0,3).join("")}</div><div>${bars.slice(3,6).join("")}</div>`;
+}
+
+function reviewCard(r) {
+  return `<div class="review">
+    <div class="rtitle">${r.title || "(no title)"}</div>
+    <div class="rtext">${r.text || "(no text)"}</div>
+    <div class="rmeta">
+      ${tag(`${r.rating.toFixed(1)}★ · key: ${r.key}`, r.key)}
+      ${tag(`model: ${r.pred}`, r.pred)}
+      ${tag(`score ${r.score >= 0 ? "+" : ""}${r.score.toFixed(3)}`, "neu")}
+    </div></div>`;
+}
+
+function renderExamples() {
+  const ex = DATA.examples, cc = DATA.full.cluster_counts;
+  const sections = [
+    ["Abstained — model said neutral, key says pos/neg", "var(--neu)", "abstained", ex.abstained],
+    ["Over-positive — model said positive, key says 3★ or lower", "var(--neg)", "over_positive", ex.over_positive],
+    ["Over-negative — model said negative, key says 3★ or higher", "var(--neg)", "over_negative", ex.over_negative],
+  ];
+  $("examples").innerHTML = sections.map(([title, color, key, list]) => `
+    <div style="margin-bottom:26px">
+      <h3 style="font-size:14px;font-weight:650;color:${color};margin-bottom:10px">
+        ${title} <span style="color:var(--ink-3);font-weight:500">· ${FMT.format(cc[key])} across the full dataset</span></h3>
+      <div class="examples">${list.map(reviewCard).join("")}</div>
+    </div>`).join("");
+}
+
+const FILTER_ORDER = [
+  ["all", "All reviews"],
+  ["correct", "Correct ✓"],
+  ["mismatched", "Mismatched ✗"],
+  ["abstained", "Abstained (neutral)"],
+  ["over_positive", "Over-positive"],
+  ["over_negative", "Over-negative"],
+];
+const PAGE_SIZE = 20;
+let state = { filter: "all", query: "", page: 0 };
+
+function rowMatches(r, key) {
+  if (key === "all") return true;
+  if (key === "correct") return r.cluster === "correct";
+  if (key === "mismatched") return r.cluster !== "correct";
+  return r.cluster === key;
+}
+function rowMatchesQuery(r, q) {
+  if (!q) return true;
+  return ((r.title || "") + " " + (r.text || "")).toLowerCase().includes(q);
+}
+
+function renderPager(matchCount, totalPages) {
+  const pager = $("pager");
+  if (matchCount <= PAGE_SIZE) {
+    pager.style.display = "none";
+    return;
+  }
+  pager.style.display = "flex";
+  pager.innerHTML =
+    `<button class="fbtn pg" data-dir="-1" ${state.page === 0 ? "disabled" : ""}>← Prev</button>
+     <span class="pageinfo">Page <b>${state.page + 1}</b> of ${totalPages}</span>
+     <button class="fbtn pg" data-dir="1" ${state.page >= totalPages - 1 ? "disabled" : ""}>Next →</button>`;
+  pager.querySelectorAll(".pg").forEach(b =>
+    b.addEventListener("click", () => {
+      if (b.disabled) return;
+      state.page += parseInt(b.dataset.dir, 10);
+      renderExplorer();
+    }));
+}
+
+function renderExplorer() {
+  const rows = DATA.sample.all;
+  const q = state.query.trim().toLowerCase();
+  const visible = rows.filter(r => rowMatches(r, state.filter) && rowMatchesQuery(r, q));
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  if (state.page >= totalPages) state.page = totalPages - 1;
+
+  const start = state.page * PAGE_SIZE;
+  const pageRows = visible.slice(start, start + PAGE_SIZE);
+  const end = start + pageRows.length;
+
+  $("showCount").innerHTML = visible.length
+    ? `Showing <b>${start + 1}–${end}</b> of <b>${visible.length}</b>`
+    : `Showing <b>0</b> of <b>0</b>`;
+
+  $("detailBody").innerHTML = pageRows.map(row => {
+    const ok = row.cluster === "correct";
+    return `<tr>
+      <td><span class="status ${ok ? "ok" : "bad"}">
+            <span class="dot" style="background:${ok ? "var(--pos)" : "var(--neg)"}"></span>
+            ${ok ? "✓" : "✗"} ${row.cluster === "correct" ? "match" : row.cluster === "abstained" ? "abstained" : "mismatch"}</span></td>
+      <td class="num">${row.rating.toFixed(1)}★</td>
+      <td><span class="dot" style="background:${CLS_COLOR[row.key]}"></span>${row.key}</td>
+      <td><span class="dot" style="background:${CLS_COLOR[row.pred]}"></span>${row.pred}</td>
+      <td class="num">${row.score >= 0 ? "+" : ""}${row.score.toFixed(3)}</td>
+      <td><div class="tt">${row.title || "(no title)"}</div><div class="tx">${row.text || ""}</div></td>
+    </tr>`;
+  }).join("");
+  $("detailEmpty").style.display = visible.length ? "none" : "block";
+  renderPager(visible.length, totalPages);
+}
+
+function renderFilters() {
+  const rows = DATA.sample.all;
+  const counts = { all: rows.length };
+  for (const r of rows) counts[r.cluster] = (counts[r.cluster] || 0) + 1;
+  counts.mismatched = counts.abstained + counts.over_positive + counts.over_negative;
+  $("filters").innerHTML = FILTER_ORDER.map(([key, label]) =>
+    `<button class="fbtn${state.filter === key ? " active" : ""}" data-f="${key}">${label}<span class="fcnt">${counts[key] || 0}</span></button>`).join("");
+  document.querySelectorAll(".fbtn").forEach(b =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".fbtn").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      state.filter = b.dataset.f;
+      state.page = 0;
+      renderExplorer();
+    }));
+}
+function initExplorer() {
+  renderFilters();
+  renderExplorer();
+  $("search").addEventListener("input", e => {
+    state.query = e.target.value;
+    state.page = 0;
+    renderExplorer();
+  });
+}
+
+function renderFoot() {
+  const f = DATA.full;
+  $("foot").innerHTML =
+    `Method: the model reads only <code>title</code> + <code>text</code> (phrase pre-check, then VADER;
+     compound &lt; 0 → negative, == 0 → neutral, &gt; 0 → positive). The rating is never an input; it is read
+     back afterwards strictly to build the 3-class answer key (<code>4-5★ → positive, 3★ → neutral, 1-2★ → negative</code>).
+     The headline and detail table use a balanced sample (50 per class, drawn at fixed random
+     from the whole file) so the rare classes are not drowned out;
+     the confusion matrix above uses that same balanced sample. The full dataset
+     (${FMT.format(f.total)} reviews) has a true split of
+     ${FMT.format(f.truth.positive)} positive, ${FMT.format(f.truth.neutral)} neutral, ${FMT.format(f.truth.negative)} negative.
+     Rebuild with <code>python3 build_dashboard.py</code>; recolor via the CSS tokens in <code>:root</code>.`;
+}
+
+renderMeta(); renderMetrics(); renderStarDist(); renderByClass(); renderSplit(); renderCM(); renderExamples(); initExplorer(); renderFoot();
+</script>
+</body>
+</html>
